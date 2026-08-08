@@ -221,7 +221,7 @@
     color: var(--gris); font-weight:700;
   }
   .panel .dias-num{
-    font-size: 46px; font-weight:800; line-height:1; margin: 6px 0 2px;
+    font-size: 32px; font-weight:800; line-height:1; margin: 6px 0 2px;
     background: linear-gradient(160deg, var(--rojo-vivo), var(--rojo-oscuro));
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 2px 1px rgba(196,30,42,0.18));
@@ -303,6 +303,11 @@
         <div class="campo">
           <label for="nombre">Nombre del colaborador</label>
           <input type="text" id="nombre" name="nombre" placeholder="Nombre completo" required>
+        </div>
+        <div class="campo">
+          <label for="colaboradorEmail">Correo del colaborador</label>
+          <input type="email" id="colaboradorEmail" name="colaboradorEmail" placeholder="tucorreo@sinergiacorporativo.com.mx" required>
+          <span class="hint">Aquí te llegará una copia de tu solicitud</span>
         </div>
         <div class="campo">
           <label for="puesto">Puesto</label>
@@ -568,6 +573,7 @@
 
     const payload = {
       nombre: $('nombre').value,
+      colaboradorEmail: $('colaboradorEmail').value,
       puesto: $('puesto').value,
       ingreso: $('ingreso').value,
       antiguedad: $('antiguedad').value,
