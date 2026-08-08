@@ -605,7 +605,8 @@
       }
     })
     .catch(err => {
-      errorMsg.textContent = 'Hubo un problema al enviar tu solicitud. Intenta de nuevo.';
+      console.error('Error al enviar solicitud:', err);
+      errorMsg.textContent = 'Hubo un problema al enviar tu solicitud: ' + err.message;
       btn.disabled = false;
       btn.textContent = 'Enviar solicitud';
     });
