@@ -313,8 +313,9 @@
           <input type="date" id="ingreso" name="ingreso" required>
         </div>
         <div class="campo">
-          <label for="antiguedad">Antigüedad en años</label>
-          <input type="number" id="antiguedad" name="antiguedad" min="0" step="0.1" placeholder="Ej. 2.5" required>
+          <label for="antiguedad">Antigüedad</label>
+          <input type="text" id="antiguedad" name="antiguedad" readonly placeholder="Se calcula con tu fecha de ingreso">
+          <span class="hint">Se calcula sola al poner tu fecha de ingreso</span>
         </div>
       </div>
     </div>
@@ -326,12 +327,14 @@
       </div>
       <div class="grid2">
         <div class="campo">
-          <label for="periodo">Periodo al que pertenece el ciclo</label>
-          <input type="text" id="periodo" name="periodo" placeholder="Ej. 2025-2026" required>
+          <label for="periodo">Periodo vacacional vigente</label>
+          <input type="text" id="periodo" name="periodo" readonly placeholder="Se calcula con tu fecha de ingreso">
+          <span class="hint">El ciclo de vacaciones en el que estás ahora</span>
         </div>
         <div class="campo">
           <label for="disponibles">Días disponibles</label>
           <input type="number" id="disponibles" name="disponibles" min="0" placeholder="Ej. 12" required>
+          <span class="hint">Sugerido según tu antigüedad · ajústalo si tu saldo real es distinto</span>
         </div>
         <div class="campo">
           <label for="inicio">Fecha de inicio</label>
@@ -433,6 +436,60 @@
     }
     return nuevo;
   }
+
+  // Tabla de días de vacaciones según la Ley Federal del Trabajo (reforma "vacaciones dignas")
+  function diasPorLey(aniosCompletos){
+    if(aniosCompletos <= 0) return 0;
+    if(aniosCompletos <= 5) return 10 + 2 * aniosCompletos; // 1→12, 2→14, 3→16, 4→18, 5→20
+    const bloques = Math.ceil((aniosCompletos - 5) / 5);
+    return 20 + 2 * bloques; // 6-10→22, 11-15→24, 16-20→26...
+  }
+
+  function actualizarAntiguedad(){
+    const ingreso = parseLocal($('ingreso').value);
+    if(!ingreso){
+      $('antiguedad').value = '';
+      $('periodo').value = '';
+      return;
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+    let anios = hoy.getFullYear() - ingreso.getFullYear();
+    let meses = hoy.getMonth() - ingreso.getMonth();
+    let dias = hoy.getDate() - ingreso.getDate();
+    if(dias < 0){ meses--; }
+    if(meses < 0){ anios--; meses += 12; }
+    if(anios < 0){ anios = 0; meses = 0; }
+
+    const etiquetaAnios = anios === 1 ? '1 año' : anios + ' años';
+    const etiquetaMeses = meses === 1 ? '1 mes' : meses + ' meses';
+    $('antiguedad').value = anios > 0 ? (etiquetaAnios + ', ' + etiquetaMeses) : etiquetaMeses;
+
+    // Aniversario más reciente (inicio del ciclo vacacional vigente)
+    const inicioCiclo = new Date(ingreso);
+    inicioCiclo.setFullYear(ingreso.getFullYear() + anios);
+    const finCiclo = new Date(inicioCiclo);
+    finCiclo.setFullYear(finCiclo.getFullYear() + 1);
+    finCiclo.setDate(finCiclo.getDate() - 1);
+
+    $('periodo').value = formatoFecha(inicioCiclo) + ' – ' + formatoFecha(finCiclo);
+
+    // Sugerencia de días disponibles según Ley (el colaborador puede ajustar si su saldo real es distinto)
+    const sugeridos = diasPorLey(anios);
+    if(!$('disponibles').dataset.editadoManual){
+      $('disponibles').value = sugeridos;
+    }
+  }
+
+  $('ingreso').addEventListener('input', function(){
+    actualizarAntiguedad();
+    calcular();
+  });
+  $('disponibles').addEventListener('input', function(){
+    $('disponibles').dataset.editadoManual = '1';
+  });
 
   function calcular(){
     const inicio = parseLocal($('inicio').value);
